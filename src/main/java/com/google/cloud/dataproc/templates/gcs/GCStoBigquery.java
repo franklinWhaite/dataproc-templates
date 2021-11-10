@@ -15,21 +15,7 @@
  */
 package com.google.cloud.dataproc.templates.gcs;
 
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_AVRO_EXTD_FORMAT;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_AVRO_FORMAT;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_CSV_FORMAT;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_CSV_HEADER;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_CSV_INFOR_SCHEMA;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_INPUT_FORMAT;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_INPUT_LOCATION;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_LD_TEMP_BUCKET_NAME;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_OUTPUT;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_OUTPUT_FORMAT;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_PRQT_FORMAT;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_BQ_TEMP_BUCKET;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_OUTPUT_DATASET_NAME;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.GCS_OUTPUT_TABLE_NAME;
-import static com.google.cloud.dataproc.templates.util.TemplateConstants.PROJECT_ID_PROP;
+import static com.google.cloud.dataproc.templates.util.TemplateConstants.*;
 
 import com.google.cloud.dataproc.templates.BaseTemplate;
 import java.util.Objects;
@@ -126,12 +112,26 @@ public class GCStoBigquery implements BaseTemplate {
         case GCS_BQ_PRQT_FORMAT:
           inputData = spark.read().parquet(inputFileLocation);
           break;
+        case GCS_BQ_JSON_FORMAT:
+          inputData =
+              spark
+                  .read()
+                  .format(GCS_BQ_JSON_FORMAT)
+                  .option(GCS_BQ_JSON_HEADER, true)
+                  .option(GCS_BQ_JSON_INFOR_SCHEMA, true)
+                  .load(inputFileLocation);
+          break;
         default:
           throw new IllegalArgumentException(
               "Currenlty avro, parquet and csv are the only supported formats");
       }
 
-      inputData
+      // TODO: add custom aggregations / transformations here
+      inputData.createOrReplaceTempView("inputData");
+      Dataset<Row> outputData =
+          spark.sql("select * from inputData");
+
+      outputData
           .write()
           .format(GCS_BQ_OUTPUT_FORMAT)
           .option(GCS_BQ_CSV_HEADER, true)

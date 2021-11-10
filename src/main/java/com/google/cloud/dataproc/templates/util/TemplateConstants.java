@@ -99,15 +99,21 @@ public interface TemplateConstants {
 
   String GCS_BQ_CSV_FORMAT = "csv";
 
+  String GCS_BQ_JSON_FORMAT = "json";
+
   String GCS_BQ_AVRO_FORMAT = "avro";
 
   String GCS_BQ_PRQT_FORMAT = "parquet";
 
   String GCS_BQ_CSV_HEADER = "header";
 
+  String GCS_BQ_JSON_HEADER = "header";
+
   String GCS_BQ_OUTPUT_FORMAT = "com.google.cloud.spark.bigquery";
 
   String GCS_BQ_CSV_INFOR_SCHEMA = "inferSchema";
+
+  String GCS_BQ_JSON_INFOR_SCHEMA = "inferSchema";
 
   String GCS_BQ_TEMP_BUCKET = "temporaryGcsBucket";
 
