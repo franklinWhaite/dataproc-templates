@@ -74,27 +74,80 @@ Google is providing this collection of pre-implemented Dataproc templates as a r
     [gcloud CLI](https://cloud.google.com/sdk/gcloud/reference/dataproc/jobs)
     tool. The runtime parameters required by the template can be passed in the
     parameters field via comma-separated list of `paramName=Value`.
+   * Set required variables.
+      ```
+      [Required]
+      export PROJECT=my-gcp-project
+      export REGION=gcp-region
+      export SUBNET=subnet-id (Example projects/<gcp-project>/regions/<region>/subnetworks/test-subnet1)
+      export GCS_STAGING_BUCKET=gs://my-bucket/temp
 
-    #### Executing Hive to GCS template
+      [Optional]
+      export HISTORY_SERVER_CLUSTER=permanent-history-server-id (Id of Dataproc cluster running permanent history server to access historic logs. Example projects/<project-id>/regions/<region>/clusters/per-hs)
+        ```
+   * Execute required template.
+      ```
+      bin/start.sh GCP_PROJECT=${PROJECT} \
+      REGION=${REGION}  \
+      SUBNET=${SUBNET}   \
+      GCS_STAGING_BUCKET=${GCS_STAGING_BUCKET} \
+      TEMPLATE_NAME=HIVETOGCS \
+      --properties=spark.hadoop.hive.metastore.uris=hrift://hostname/ip:9083
+      ```
+    1. #### Executing Hive to GCS template. Detailed instructions at [README.md](src/main/java/com/google/cloud/dataproc/templates/hive/README.md)
+        ```
+        bin/start.sh GCP_PROJECT=${PROJECT} \
+          REGION=${REGION}  \
+          SUBNET=${SUBNET}   \
+          GCS_STAGING_BUCKET=${GCS_STAGING_BUCKET} \
+          HISTORY_SERVER_CLUSTER=${HISTORY_SERVER_CLUSTER} \ #  [Optional]
+          TEMPLATE_NAME=HIVETOGCS \
+          --properties=spark.hadoop.hive.metastore.uris=hrift://hostname/ip:9083
+       ```
+   1. #### Executing Hive to BigQuery template. Detailed instructions at [README.md](src/main/java/com/google/cloud/dataproc/templates/hive/README.md)
 
-    ```
-    bin/start.sh gs://dataproc-templates/jars \
-    gcp-project \
-    gcp-region \
-    network-subnet \
-    persistent-history-server[Optional] \
-    hivetogcs
-    ```
+        ```
+       bin/start.sh GCP_PROJECT=${PROJECT} \
+          REGION=${REGION}  \
+          SUBNET=${SUBNET}   \
+          GCS_STAGING_BUCKET=${GCS_STAGING_BUCKET} \
+          HISTORY_SERVER_CLUSTER=${HISTORY_SERVER_CLUSTER} \ #  [Optional]
+          TEMPLATE_NAME=HIVETOBIGQUERY \
+          --properties=spark.hadoop.hive.metastore.uris=hrift://hostname/ip:9083
+        ```
 
-    #### Executing Spanner to GCS template
+    1. #### Executing Spanner to GCS template. Detailed instructions at [README.md](src/main/java/com/google/cloud/dataproc/templates/databases/README.md)
 
-    ```
-    bin/start.sh gs://dataproc-templates/jars \
-    gcp-project \
-    gcp-region \
-    network-subnet \
-    spannertogcs
-    ```
+        ```
+       bin/start.sh GCP_PROJECT=${PROJECT} \
+          REGION=${REGION}  \
+          SUBNET=${SUBNET}   \
+          GCS_STAGING_BUCKET=${GCS_STAGING_BUCKET} \
+          HISTORY_SERVER_CLUSTER=${HISTORY_SERVER_CLUSTER} \ #  [Optional]
+          TEMPLATE_NAME=SPANNERTOGCS
+        ```
+
+   1. #### Executing PubSub to BigQuery template.
+
+        ```
+       bin/start.sh GCP_PROJECT=${PROJECT} \
+          REGION=${REGION}  \
+          SUBNET=${SUBNET}   \
+          GCS_STAGING_BUCKET=${GCS_STAGING_BUCKET} \
+          HISTORY_SERVER_CLUSTER=${HISTORY_SERVER_CLUSTER} \ #  [Optional]
+          TEMPLATE_NAME=PUBSUBTOBQ
+        ```
+
+   1. #### Executing GCS to BigQuery template.
+
+        ```
+       bin/start.sh GCP_PROJECT=${PROJECT} \
+          REGION=${REGION}  \
+          SUBNET=${SUBNET}   \
+          GCS_STAGING_BUCKET=${GCS_STAGING_BUCKET} \
+          HISTORY_SERVER_CLUSTER=${HISTORY_SERVER_CLUSTER} \ #  [Optional]
+          TEMPLATE_NAME=GCSTOBIGQUERY
+        ```
 
 ## Flow diagram
 

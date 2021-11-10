@@ -16,14 +16,14 @@
 # limitations under the License.
 
 #Initialize functions and Constants
-BIN_DIR=`dirname ${0}`
+BIN_DIR="$(dirname "$BASH_SOURCE")"
 PROJECT_ROOT_DIR=${BIN_DIR}/..
 . ${BIN_DIR}/dataproc_template_constants.sh
 . ${BIN_DIR}/dataproc_template_functions.sh
 
 #Parse Command Line arguments and check mandatory fields exist
 parse_arguments $*
-check_mandatory_fields GCP_PROJECT REGION SUBNET GCS_STAGING_BUCKET HISTORY_SERVER_CLUSTER TEMPLATE_NAME
+check_mandatory_fields GCP_PROJECT REGION SUBNET GCS_STAGING_BUCKET TEMPLATE_NAME
 
 
 echo_formatted "Spark args are $SPARK_ARGS"
@@ -31,14 +31,30 @@ echo_formatted "Spark args are $SPARK_ARGS"
 #Change PWD to root folder for Maven Build
 cd ${PROJECT_ROOT_DIR}
 mvn clean spotless:apply install -DskipTests
+mvn dependency:get -Dartifact=io.grpc:grpc-grpclb:1.40.1 -Dmaven.repo.local=./grpc_lb
 
 #Copy jar file to GCS bucket Staging folder
 echo_formatted "Copying ${PROJECT_ROOT_DIR}/target/${JAR_FILE} to  staging bucket: ${GCS_STAGING_BUCKET}/${JAR_FILE}"
 gsutil cp ${PROJECT_ROOT_DIR}/target/${JAR_FILE} ${GCS_STAGING_BUCKET}/${JAR_FILE}
+gsutil cp ${PROJECT_ROOT_DIR}/grpc_lb/io/grpc/grpc-grpclb/1.40.1/grpc-grpclb-1.40.1.jar ${GCS_STAGING_BUCKET}/grpc-grpclb-1.40.1.jar
+
+export JAR=file:///usr/lib/spark/external/spark-avro.jar,${GCS_STAGING_BUCKET}/grpc-grpclb-1.40.1.jar
 
 echo "Triggering Spark Submit job"
 
-set -x
+echo "
+   gcloud beta dataproc batches submit spark \
+  --project=${GCP_PROJECT} \
+  --region=${REGION} \
+  --subnet ${SUBNET} \
+  --jars=${JAR},${GCS_STAGING_BUCKET}/${JAR_FILE} \
+  --labels job_type=dataproc_template \
+  --deps-bucket=${GCS_STAGING_BUCKET} \
+  $SPARK_ARGS \
+  --class com.google.cloud.dataproc.templates.main.DataProcTemplate \
+  -- ${TEMPLATE_NAME} $ARGS
+"
+
 gcloud beta dataproc batches submit spark \
 --project=${GCP_PROJECT} \
 --region=${REGION} \
@@ -46,7 +62,6 @@ gcloud beta dataproc batches submit spark \
 --jars=${JAR},${GCS_STAGING_BUCKET}/${JAR_FILE} \
 --labels job_type=dataproc_template \
 --deps-bucket=${GCS_STAGING_BUCKET} \
---history-server-cluster=${HISTORY_SERVER_CLUSTER} \
 $SPARK_ARGS \
 --class com.google.cloud.dataproc.templates.main.DataProcTemplate \
 -- ${TEMPLATE_NAME} $ARGS
