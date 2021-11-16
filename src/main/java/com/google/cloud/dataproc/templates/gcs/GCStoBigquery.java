@@ -123,18 +123,18 @@ public class GCStoBigquery implements BaseTemplate {
           break;
         default:
           throw new IllegalArgumentException(
-              "Currenlty avro, parquet and csv are the only supported formats");
+              "Currenlty avro, parquet, csv and json are the only supported formats");
       }
 
       // TODO: add custom aggregations / transformations here
       inputData.createOrReplaceTempView("inputData");
-      Dataset<Row> outputData =
-          spark.sql("select * from inputData");
+      Dataset<Row> outputData = spark.sql("select type, timestamp from inputData");
+      outputData.printSchema();
 
       outputData
           .write()
           .format(GCS_BQ_OUTPUT_FORMAT)
-          .option(GCS_BQ_CSV_HEADER, true)
+          .option(GCS_BQ_JSON_HEADER, true)
           .option(GCS_BQ_OUTPUT, bigQueryDataset + "." + bigQueryTable)
           .option(GCS_BQ_TEMP_BUCKET, bqTempBucket)
           .mode(SaveMode.Append)
